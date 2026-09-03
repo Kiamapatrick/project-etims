@@ -1,5 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { config } from './config/env.js';
 import { connectDB } from './db/mongoose.js';
 import { corsMiddleware } from './middleware/cors.js';
@@ -8,12 +10,14 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 import healthRoutes from './routes/health.js';
 import { logger } from './utils/logger.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(helmetMiddleware);
 app.use(corsMiddleware);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.static(path.join(__dirname, '../public')));
 
 if (config.nodeEnv === 'development') {
   app.use(morgan('dev'));

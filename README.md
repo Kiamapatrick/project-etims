@@ -4,32 +4,29 @@ A two-sided platform for Kenyan tax compliance: accountant/auditor portal (docum
 
 ## Stack
 
-- **Frontend:** React + Vite
+- **Frontend:** Plain HTML/CSS/JS (served by Express static)
 - **Backend:** Node.js + Express
 - **Database:** MongoDB Atlas
 - **Storage:** AWS S3 (Phase 2+)
 - **Queue:** BullMQ + Redis (Phase 2+)
 - **Auth:** JWT with bcrypt
-- **Deployment:** Render (backend), Netlify (frontend)
+- **Deployment:** Render (backend + frontend served together)
 
 ## Project Structure
 
 ```
 project-etims/
 ├── backend/
+│   ├── public/           # Static frontend assets
+│   │   ├── index.html    # Main HTML page
+│   │   ├── style.css     # Styles
+│   │   └── script.js     # Vanilla JS logic
 │   ├── src/
 │   │   ├── config/       # Environment configuration
 │   │   ├── db/           # MongoDB connection
 │   │   ├── middleware/   # CORS, Helmet, Error handling
 │   │   ├── routes/       # API routes
 │   │   └── utils/        # Logger
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx       # Main app component
-│   │   ├── main.jsx      # Entry point
-│   │   └── styles.css    # Global styles
-│   ├── index.html
 │   └── package.json
 ├── .env.example
 ├── .gitignore
@@ -56,7 +53,7 @@ project-etims/
 - MongoDB Atlas account
 - AWS account (for S3, Phase 2+)
 
-### Backend Setup
+### Backend Setup (serves frontend too)
 
 ```bash
 cd backend
@@ -67,17 +64,8 @@ npm run dev
 ```
 
 Server runs at `http://localhost:4000`  
+Frontend served at `http://localhost:4000`  
 Health check: `GET http://localhost:4000/api/health`
-
-### Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-App runs at `http://localhost:5173` (proxies `/api` to backend)
 
 ### Environment Variables
 
@@ -85,7 +73,7 @@ App runs at `http://localhost:5173` (proxies `/api` to backend)
 |----------|-------------|
 | `MONGODB_URI` | MongoDB Atlas connection string |
 | `JWT_SECRET` | 32+ char random string |
-| `FRONTEND_ORIGIN` | Frontend URL (e.g., `http://localhost:5173`) |
+| `FRONTEND_ORIGIN` | Frontend URL (e.g., `http://localhost:4000`) |
 | `PORT` | Backend port (default: 4000) |
 | `AWS_*` | S3 credentials (Phase 2+) |
 
@@ -110,29 +98,15 @@ App runs at `http://localhost:5173` (proxies `/api` to backend)
 # Backend (from backend/)
 npm run dev        # Start with file watching
 npm run lint       # Run ESLint
-
-# Frontend (from frontend/)
-npm run dev        # Start Vite dev server
-npm run build      # Production build
-npm run preview    # Preview production build
 ```
 
-## Deployment
-
-### Backend (Render)
+## Deployment (Render)
 
 1. Connect GitHub repo
 2. Build command: `cd backend && npm install`
 3. Start command: `cd backend && npm start`
 4. Add environment variables in Render dashboard
-
-### Frontend (Netlify)
-
-1. Connect GitHub repo
-2. Base directory: `frontend`
-3. Build command: `npm run build`
-4. Publish directory: `dist`
-5. Add environment variables
+5. Frontend served automatically at `/` via `express.static`
 
 ## License
 
