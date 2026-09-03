@@ -5,14 +5,10 @@ import { AppError } from './errorHandler.js';
 
 export async function authenticate(req, res, next) {
   try {
-    let accessToken = extractAccessToken(req);
+    const accessToken = extractAccessToken(req);
 
     if (!accessToken) {
-      const refreshed = await tryRefreshToken(req, res);
-      if (!refreshed) {
-        throw new AppError('Authentication required', 401);
-      }
-      accessToken = extractAccessToken(req);
+      throw new AppError('Authentication required', 401);
     }
 
     let decoded;
@@ -20,15 +16,9 @@ export async function authenticate(req, res, next) {
       decoded = jwt.verify(accessToken, config.jwtSecret);
     } catch (err) {
       if (err.name === 'TokenExpiredError') {
-        const refreshed = await tryRefreshToken(req, res);
-        if (!refreshed) {
-          throw new AppError('Token expired, please log in again', 401);
-        }
-        accessToken = extractAccessToken(req);
-        decoded = jwt.verify(accessToken, config.jwtSecret);
-      } else {
-        throw new AppError('Invalid token', 401);
+        throw new AppError('Token expired', 401);
       }
+      throw new AppError('Invalid token', 401);
     }
 
     const user = await User.findById(decoded.sub).select('+passwordHash');
@@ -52,23 +42,6 @@ function extractAccessToken(req) {
   return null;
 }
 
-async function tryRefreshToken(req, res) {
-  const refreshToken = req.cookies?.refreshToken;
-  if (!refreshToken) return false;
-
-  try {
-    const decoded = jwt.verify(refreshToken, config.jwtSecret);
-    const user = await User.findById(decoded.sub);
-    if (!user || !user.isActive) return false;
-
-    const newAccessToken = generateAccessToken(user);
-    setAccessTokenCookie(res, newAccessToken);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function generateAccessToken(user) {
   return jwt.sign(
     {
@@ -88,16 +61,6 @@ export function generateRefreshToken(user) {
     config.jwtSecret,
     { expiresIn: config.jwt.refreshExpiresIn }
   );
-}
-
-export function setAccessTokenCookie(res, token) {
-  res.cookie('accessToken', token, {
-    httpOnly: true,
-    secure: config.cookie.secure,
-    sameSite: config.cookie.sameSite,
-    maxAge: parseDuration(config.jwt.accessExpiresIn),
-    path: '/',
-  });
 }
 
 export function setRefreshTokenCookie(res, token) {
