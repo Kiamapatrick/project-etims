@@ -85,6 +85,18 @@ const documentUploadSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  s3Keys: {
+    type: [String],
+    default: [],
+  },
+  processingStartedAt: {
+    type: Date,
+    default: null,
+  },
+  processingCompletedAt: {
+    type: Date,
+    default: null,
+  },
 }, {
   timestamps: true,
 });

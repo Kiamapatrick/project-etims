@@ -48,4 +48,29 @@ export const config = {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
   },
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+    password: process.env.REDIS_PASSWORD || undefined,
+  },
+  s3: {
+    region: process.env.AWS_REGION,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    bucket: process.env.S3_BUCKET,
+    presignedUrlExpiry: parseInt(process.env.S3_PRESIGNED_URL_EXPIRY, 10) || 3600,
+  },
+  upload: {
+    maxFileSize: parseInt(process.env.MAX_FILE_SIZE, 10) || 10 * 1024 * 1024,
+    maxFilesPerBatch: parseInt(process.env.MAX_FILES_PER_BATCH, 10) || 50,
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+  },
+  extraction: {
+    imageMaxDimension: parseInt(process.env.IMAGE_MAX_DIMENSION, 10) || 2000,
+    ocrLanguage: process.env.OCR_LANGUAGE || 'eng',
+    confidenceThreshold: parseFloat(process.env.CONFIDENCE_THRESHOLD) || 0.85,
+  },
+  worker: {
+    concurrency: parseInt(process.env.WORKER_CONCURRENCY, 10) || 4,
+  },
 };

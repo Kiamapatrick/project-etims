@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.js';
 import firmsRoutes from './routes/firms.js';
 import businessesRoutes from './routes/businesses.js';
 import usersRoutes from './routes/users.js';
+import uploadRoutes from './routes/uploads.js';
 import { logger } from './utils/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -40,6 +41,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/firms', firmsRoutes);
 app.use('/api/businesses', businessesRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
