@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <title>eTIMS POS</title>
+  <link rel="manifest" "/pos/manifest.json" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/pos/pos.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="pos-header">
+      <div class="header-left">
+        <h1>eTIMS POS</h1>
+        <span id="businessName" class="business-name"></span>
+      </div>
+      <div class="header-right">
+        <span id="onlineStatus" class="status-indicator online">Online</span>
+        <span id="userInfo" class="user-info"></span>
+        <button id="logoutBtn" class="btn btn-secondary btn-sm">Logout</button>
+      </div>
+    </header>
+
+    <div id="installBanner" class="install-banner" style="display: none;">
+      <span>Install eTIMS POS for offline access</span>
+      <button id="installBtn" class="btn btn-primary btn-sm">Install</button>
+      <button id="dismissInstallBtn" class="btn btn-secondary btn-sm">Dismiss</button>
+    </div>
+
+    <div id="offlineBanner" class="offline-banner" style="display: none;">
+      <span>⚠ You're offline. Sales will be queued and synced when back online.</span>
+      <span id="queuedCount" class="queued-badge">0 queued</span>
+    </div>
+
+    <main class="pos-main">
+      <section class="card pos-form-card">
+        <header class="card-header">
+          <h2>New Sale</h2>
+        </header>
+
+        <form id="saleForm" class="pos-form">
+          <div id="dynamicFields"></div>
+
+          <h3>Line Items</h3>
+          <table class="line-items-table" id="lineItemsTable">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>VAT %</th>
+                <th>VAT Amt</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="lineItemsBody"></tbody>
+          </table>
+          <button type="button" id="addLineItem" class="btn btn-secondary btn-sm">+ Add Line Item</button>
+
+          <div class="totals-panel">
+            <div class="totals-row">
+              <span>Subtotal</span>
+              <span id="totalSubtotal">KES 0.00</span>
+            </div>
+            <div class="totals-row">
+              <span>VAT Total</span>
+              <span id="totalVat">KES 0.00</span>
+            </div>
+            <div class="totals-row total">
+              <span>Grand Total</span>
+              <span id="totalGrand">KES 0.00</span>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button type="button" id="saveDraftBtn" class="btn btn-secondary">Save Draft</button>
+            <button type="submit" id="submitSaleBtn" class="btn btn-primary">Submit Sale</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card pos-history-card">
+        <header class="card-header">
+          <h2>Recent Sales</h2>
+        </header>
+        <div id="loadingHistory" class="loading" style="display: none;">Loading...</div>
+        <table class="data-table" id="historyTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Reference</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="/pos/pos.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/pos/sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed:', err));
+    }
+  </script>
+</body>
+</html>

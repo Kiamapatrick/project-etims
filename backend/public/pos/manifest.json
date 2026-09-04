@@ -1,0 +1,29 @@
+{
+  "name": "eTIMS POS",
+  "short_name": "eTIMS POS",
+  "description": "Point of Sale for eTIMS - Electronic Tax Invoice Management System",
+  "start_url": "/pos/pos.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e3a8a",
+  "orientation": "portrait-primary",
+  "scope": "/pos/",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231e3a8a' width='100' height='100' rx='20'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>POS</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "finance"],
+  "shortcuts": [
+    {
+      "name": "New Sale",
+      "short_name": "New Sale",
+      "description": "Create a new sale",
+      "url": "/pos/pos.html",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2310b981' width='100' height='100' rx='20'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>+</text></svg>", "sizes": "192x192" }]
+    }
+  ]
+}

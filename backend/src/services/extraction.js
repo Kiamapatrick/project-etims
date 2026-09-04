@@ -1,4 +1,4 @@
-import { DocumentUpload } from '../models/index.js';
+import { DocumentUpload, Business } from '../models/index.js';
 import { downloadFromS3 } from './s3.js';
 import { prepareImageForExtraction } from './imageProcessor.js';
 import { decodeQrFromBuffer, extractCUIFromQR } from './qrDecoder.js';
@@ -122,6 +122,29 @@ export async function processFile(documentUploadId, fileIndex) {
     extractedData = parseOcrText(ocrResult.text, cuin, qrCode);
     extractedData.source = qrVerified ? 'qr' : 'ocr';
     extractedData.confidence = ocrResult.confidence;
+
+    if (extractedData.lineItems.length === 0 && extractedData.total !== null) {
+      const business = await Business.findById(upload.businessId);
+      const vatRate = business?.defaultVatRate ?? 16;
+      const vatAmount = extractedData.vat?.amount ?? Math.round(extractedData.total * vatRate / (100 + vatRate));
+      const unitPrice = extractedData.total - vatAmount;
+      
+      extractedData.lineItems.push({
+        description: 'Receipt total',
+        quantity: 1,
+        unitPrice,
+        vatRate,
+        vatAmount,
+        totalAmount: extractedData.total,
+      });
+      
+      if (!extractedData.vat?.amount) {
+        extractedData.vat = { rate: vatRate, amount: vatAmount };
+      }
+      if (!extractedData.subtotal) {
+        extractedData.subtotal = unitPrice;
+      }
+    }
 
     const validation = validateExtraction(extractedData);
     extractedData.validationFlags = validation.errors;

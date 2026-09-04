@@ -49,6 +49,12 @@ const businessSchema = new mongoose.Schema({
     maxlength: 100,
     default: null,
   },
+  defaultVatRate: {
+    type: Number,
+    default: 16,
+    min: 0,
+    max: 100,
+  },
 }, {
   timestamps: true,
 });

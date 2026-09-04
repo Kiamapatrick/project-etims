@@ -1,6 +1,6 @@
 import rateLimit from 'express-rate-limit';
 import { Router } from 'express';
-import { AccountingFirm } from '../models/index.js';
+import { AccountingFirm, ReceiptConfig } from '../models/index.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireAdmin } from '../middleware/rbac.js';
 import { AppError } from '../middleware/errorHandler.js';
@@ -88,6 +88,44 @@ router.delete('/:id', async (req, res, next) => {
       throw new AppError('Firm not found', 404);
     }
     res.json({ status: 'success', message: 'Firm deactivated' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/businesses/:businessId/receipt-config', async (req, res, next) => {
+  try {
+    const { businessId } = req.params;
+    const config = await ReceiptConfig.findOne({ businessId }).lean();
+    res.json({ status: 'success', config });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put('/businesses/:businessId/receipt-config', async (req, res, next) => {
+  try {
+    const { businessId } = req.params;
+    const { fields } = req.body;
+
+    if (!fields || !Array.isArray(fields)) {
+      throw new AppError('fields array is required', 400);
+    }
+
+    const existing = await ReceiptConfig.findOne({ businessId });
+    if (existing) {
+      existing.fields = fields;
+      existing.version += 1;
+      await existing.save();
+      res.json({ status: 'success', config: existing });
+    } else {
+      const config = await ReceiptConfig.create({
+        businessId,
+        fields,
+        version: 1,
+      });
+      res.status(201).json({ status: 'success', config });
+    }
   } catch (err) {
     next(err);
   }

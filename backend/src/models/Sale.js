@@ -89,6 +89,12 @@ const saleSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  posReference: {
+    type: String,
+    trim: true,
+    maxlength: 100,
+    default: null,
+  },
   lineItems: {
     type: [lineItemSchema],
     default: [],

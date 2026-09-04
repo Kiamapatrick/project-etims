@@ -16,6 +16,7 @@ import usersRoutes from './routes/users.js';
 import uploadRoutes from './routes/uploads.js';
 import reviewRoutes from './routes/reviews.js';
 import quickbooksRoutes from './routes/quickbooks.js';
+import posRoutes from './routes/pos.js';
 import { logger } from './utils/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -46,6 +47,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/quickbooks', quickbooksRoutes);
+app.use('/api/pos', posRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
