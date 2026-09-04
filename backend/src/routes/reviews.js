@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
-import { requireBusinessAccess } from '../middleware/accessControl.js';
 import { requireBatchAccess } from '../middleware/batchAccess.js';
 import { requireDocumentAccess } from '../middleware/documentAccess.js';
+import { scopeToAccessibleBusinesses } from '../middleware/scopeToAccessibleBusinesses.js';
 import {
   listBatches,
   getBatchDetail,
@@ -16,7 +16,7 @@ import {
 const router = Router();
 router.use(authenticate);
 
-router.get('/batches', requireBusinessAccess, listBatches);
+router.get('/batches', scopeToAccessibleBusinesses, listBatches);
 router.get('/batch/:batchId', requireBatchAccess, getBatchDetail);
 router.post('/batch/:batchId/confirm-bulk', requireBatchAccess, bulkConfirmBatch);
 

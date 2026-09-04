@@ -4,10 +4,12 @@ import { AppError } from '../middleware/errorHandler.js';
 
 export async function listBatches(req, res, next) {
   try {
-    const { businessId, status, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
+    const { status, dateFrom, dateTo, page = 1, limit = 20 } = req.query;
     const filter = {};
     
-    if (businessId) filter.businessId = businessId;
+    if (req.accessibleBusinessIds !== null) {
+      filter.businessId = { $in: req.accessibleBusinessIds };
+    }
     if (status) filter.status = { $in: status.split(',') };
     else filter.status = { $in: ['completed', 'needs_review', 'partial'] };
     if (dateFrom || dateTo) {
