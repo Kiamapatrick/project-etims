@@ -1,9 +1,10 @@
 import rateLimit from 'express-rate-limit';
 import { Router } from 'express';
-import { v4 as uuidv4 } from 'crypto';
+import { randomUUID as uuidv4 } from 'crypto';
 import { DocumentUpload } from '../models/index.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireBusinessAccess } from '../middleware/accessControl.js';
+import { requireBatchAccess } from '../middleware/batchAccess.js';
 import { generatePresignedUploadUrl, generateS3Key } from '../services/s3.js';
 import { addExtractionJob } from '../queues/extractionQueue.js';
 import { AppError } from '../middleware/errorHandler.js';
@@ -96,7 +97,7 @@ router.post('/batch', requireBusinessAccess, async (req, res, next) => {
   }
 });
 
-router.post('/batch/:batchId/complete', requireBusinessAccess, async (req, res, next) => {
+router.post('/batch/:batchId/complete', requireBatchAccess, async (req, res, next) => {
   try {
     const { batchId } = req.params;
 
@@ -130,7 +131,7 @@ router.post('/batch/:batchId/complete', requireBusinessAccess, async (req, res, 
   }
 });
 
-router.get('/batch/:batchId/status', requireBusinessAccess, async (req, res, next) => {
+router.get('/batch/:batchId/status', requireBatchAccess, async (req, res, next) => {
   try {
     const { batchId } = req.params;
 

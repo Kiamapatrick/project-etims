@@ -1,4 +1,4 @@
-import { FirmBusinessAccess } from '../models/index.js';
+import { checkBusinessAccess } from './checkBusinessAccess.js';
 import { AppError } from './errorHandler.js';
 
 export async function requireBusinessAccess(req, res, next) {
@@ -11,36 +11,12 @@ export async function requireBusinessAccess(req, res, next) {
     return next(new AppError('Business ID required', 400));
   }
 
-  if (req.user.role === 'admin') {
-    return next();
+  const hasAccess = await checkBusinessAccess(req.user, businessId);
+  if (!hasAccess) {
+    return next(new AppError('Access denied to this business', 403));
   }
 
-  if (req.user.role === 'business_staff') {
-    if (!req.user.businessId || req.user.businessId.toString() !== businessId) {
-      return next(new AppError('Access denied to this business', 403));
-    }
-    return next();
-  }
-
-  if (req.user.role === 'accountant') {
-    if (!req.user.firmId) {
-      return next(new AppError('Accountant not associated with a firm', 403));
-    }
-
-    const access = await FirmBusinessAccess.findOne({
-      firmId: req.user.firmId,
-      businessId: businessId,
-      revokedAt: null,
-    });
-
-    if (!access) {
-      return next(new AppError('Accountant does not have access to this business', 403));
-    }
-
-    return next();
-  }
-
-  return next(new AppError('Insufficient permissions', 403));
+  next();
 }
 
 function extractBusinessId(req) {

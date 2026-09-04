@@ -85,18 +85,15 @@ function calculateConfidence(extracted, validation) {
 
 export async function processFile(documentUploadId, fileIndex) {
   const upload = await DocumentUpload.findById(documentUploadId);
-  if (!upload) {
-    throw new Error(`DocumentUpload ${documentUploadId} not found`);
-  }
-
+  if (!upload) throw new Error(`DocumentUpload ${documentUploadId} not found`);
   const file = upload.files[fileIndex];
-  if (!file) {
-    throw new Error(`File index ${fileIndex} not found in DocumentUpload ${documentUploadId}`);
-  }
+  if (!file) throw new Error(`File index ${fileIndex} not found`);
 
   try {
-    file.status = 'processing';
-    await upload.save();
+    await DocumentUpload.updateOne(
+      { _id: documentUploadId },
+      { $set: { [`files.${fileIndex}.status`]: 'processing' } }
+    );
 
     logger.info('Starting extraction', { documentUploadId, fileIndex, s3Key: file.s3Key });
 
@@ -127,42 +124,52 @@ export async function processFile(documentUploadId, fileIndex) {
     extractedData.validationFlags = validation.errors;
     extractedData.confidence = calculateConfidence(extractedData, validation);
 
-    file.extractedData = extractedData;
-    file.confidenceScore = extractedData.confidence;
+    const fileStatus = (extractedData.confidence >= config.extraction.confidenceThreshold && validation.valid)
+      ? 'extracted'
+      : 'needs_review';
 
-    if (extractedData.confidence >= config.extraction.confidenceThreshold && validation.valid) {
-      file.status = 'extracted';
-    } else {
-      file.status = 'needs_review';
-    }
-
-    upload.processedFiles += 1;
-    if (upload.processedFiles >= upload.totalFiles) {
-      const allExtracted = upload.files.every(f => f.status === 'extracted');
-      const anyFailed = upload.files.some(f => f.status === 'failed');
-      const anyNeedsReview = upload.files.some(f => f.status === 'needs_review');
-      
-      if (allExtracted) {
-        upload.status = 'completed';
-      } else if (anyFailed) {
-        upload.status = 'partial';
-      } else if (anyNeedsReview) {
-        upload.status = 'completed';
-      } else {
-        upload.status = 'processing';
+    await DocumentUpload.updateOne(
+      { _id: documentUploadId },
+      {
+        $set: {
+          [`files.${fileIndex}.status`]: fileStatus,
+          [`files.${fileIndex}.extractedData`]: extractedData,
+          [`files.${fileIndex}.confidenceScore`]: extractedData.confidence,
+        },
+        $inc: { processedFiles: 1 },
       }
-      upload.processingCompletedAt = new Date();
-    }
+    );
 
-    await upload.save();
-    logger.info('File processing complete', { documentUploadId, fileIndex, status: file.status, confidence: extractedData.confidence });
+    logger.info('File processing complete', { documentUploadId, fileIndex, status: fileStatus, confidence: extractedData.confidence });
+
+    const updatedUpload = await DocumentUpload.findById(documentUploadId);
+    if (updatedUpload.processedFiles >= updatedUpload.totalFiles) {
+      const anyFailed = updatedUpload.files.some(f => f.status === 'failed');
+      const anyNeedsReview = updatedUpload.files.some(f => f.status === 'needs_review');
+      
+      let finalStatus = 'processing';
+      if (anyFailed) finalStatus = 'partial';
+      else if (anyNeedsReview) finalStatus = 'needs_review';
+      else finalStatus = 'completed';
+
+      await DocumentUpload.updateOne(
+        { _id: documentUploadId },
+        { $set: { status: finalStatus, processingCompletedAt: new Date() } }
+      );
+    }
 
   } catch (err) {
     logger.error('File processing failed', { documentUploadId, fileIndex, error: err.message });
-    file.status = 'failed';
-    file.errorMessage = err.message;
-    upload.processedFiles += 1;
-    await upload.save();
+    await DocumentUpload.updateOne(
+      { _id: documentUploadId },
+      {
+        $set: {
+          [`files.${fileIndex}.status`]: 'failed',
+          [`files.${fileIndex}.errorMessage`]: err.message,
+        },
+        $inc: { processedFiles: 1 },
+      }
+    );
     throw err;
   }
 }

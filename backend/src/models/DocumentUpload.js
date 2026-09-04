@@ -73,7 +73,7 @@ const documentUploadSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['pending', 'processing', 'completed', 'partial', 'failed'],
+    enum: ['pending', 'processing', 'completed', 'partial', 'needs_review', 'failed'],
     default: 'pending',
   },
   totalFiles: {
