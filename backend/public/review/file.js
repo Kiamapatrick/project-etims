@@ -2,6 +2,18 @@
 
 import { apiFetch, formatDate, formatCurrency, getStatusBadge, getUrlParam, showError, hideError, showLoading, showElement } from './review.js';
 
+function getQbStatusBadge(status) {
+  const badges = {
+    connected: 'status-completed',
+    not_configured: 'status-pending',
+    expired: 'status-failed',
+    error: 'status-failed',
+    disconnected: 'status-rejected',
+  };
+  const label = status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  return `<span class="status-badge ${badges[status] || ''}">${label}</span>`;
+}
+
 const batchId = getUrlParam('batchId');
 const fileIndex = parseInt(getUrlParam('fileIndex'), 10);
 let currentFile = null;
@@ -22,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   document.getElementById('editForm').addEventListener('submit', handleSaveEdits);
   document.getElementById('confirmBtn').addEventListener('click', handleConfirm);
+  document.getElementById('syncQbBtn').addEventListener('click', handleSyncQuickBooks);
   document.getElementById('rejectBtn').addEventListener('click', () => openRejectModal());
   document.getElementById('cancelReject').addEventListener('click', closeRejectModal);
   document.getElementById('submitReject').addEventListener('click', handleReject);
@@ -102,6 +115,18 @@ function renderFile(file, upload) {
   if (file.linkedSaleId) {
     document.getElementById('success').textContent = `Already confirmed → Sale ${file.linkedSaleId.toString().slice(-8)}`;
     document.getElementById('success').style.display = 'block';
+  }
+  
+  // QuickBooks sync button
+  if (file.linkedSaleId && !file.quickbooksId) {
+    loadQbStatus(upload.businessId);
+  } else if (file.quickbooksId) {
+    document.getElementById('qbStatus').innerHTML = getQbStatusBadge('connected');
+    document.getElementById('qbStatus').style.display = 'inline-flex';
+    document.getElementById('syncQbBtn').style.display = 'none';
+  } else {
+    document.getElementById('qbStatus').style.display = 'none';
+    document.getElementById('syncQbBtn').style.display = 'none';
   }
 }
 
@@ -326,5 +351,57 @@ async function handleReject() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Reject';
+  }
+}
+
+async function loadQbStatus(businessId) {
+  try {
+    const data = await apiFetch(`/quickbooks/status/${businessId}`);
+    const statusEl = document.getElementById('qbStatus');
+    const syncBtn = document.getElementById('syncQbBtn');
+    
+    if (data.connected) {
+      statusEl.innerHTML = getQbStatusBadge('connected');
+      statusEl.style.display = 'inline-flex';
+      if (currentFile.linkedSaleId && !currentFile.quickbooksId) {
+        syncBtn.style.display = 'inline-flex';
+      }
+    } else {
+      statusEl.innerHTML = getQbStatusBadge(data.status);
+      statusEl.style.display = 'inline-flex';
+      syncBtn.style.display = 'none';
+    }
+  } catch (err) {
+    console.warn('Failed to load QB status:', err);
+  }
+}
+
+async function handleSyncQuickBooks() {
+  if (!currentFile.linkedSaleId) {
+    showError('error', 'Sale must be confirmed before syncing');
+    return;
+  }
+  
+  const btn = document.getElementById('syncQbBtn');
+  btn.disabled = true;
+  btn.textContent = 'Syncing...';
+  
+  try {
+    const data = await apiFetch(`/quickbooks/sync/${currentFile.linkedSaleId}`, {
+      method: 'POST',
+    });
+    
+    document.getElementById('success').textContent = `Synced to QuickBooks (ID: ${data.quickbooksId})`;
+    document.getElementById('success').style.display = 'block';
+    
+    btn.style.display = 'none';
+    currentFile.quickbooksId = data.quickbooksId;
+    document.getElementById('qbStatus').innerHTML = getQbStatusBadge('connected');
+    document.getElementById('qbStatus').style.display = 'inline-flex';
+  } catch (err) {
+    showError('error', err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sync to QuickBooks';
   }
 }

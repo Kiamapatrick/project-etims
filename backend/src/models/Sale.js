@@ -67,6 +67,28 @@ const saleSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
+  sellerName: {
+    type: String,
+    trim: true,
+    maxlength: 255,
+    default: null,
+  },
+  sellerPin: {
+    type: String,
+    trim: true,
+    maxlength: 50,
+    default: null,
+  },
+  quickbooksId: {
+    type: String,
+    trim: true,
+    maxlength: 100,
+    default: null,
+  },
+  syncedAt: {
+    type: Date,
+    default: null,
+  },
   lineItems: {
     type: [lineItemSchema],
     default: [],

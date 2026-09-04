@@ -2,6 +2,18 @@
 
 import { apiFetch, formatDate, formatCurrency, getStatusBadge, getUrlParam, showError, hideError, showLoading, showElement } from './review.js';
 
+function getQbStatusBadge(status) {
+  const badges = {
+    connected: 'status-completed',
+    not_configured: 'status-pending',
+    expired: 'status-failed',
+    error: 'status-failed',
+    disconnected: 'status-rejected',
+  };
+  const label = status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  return `<span class="status-badge ${badges[status] || ''}">${label}</span>`;
+}
+
 const batchId = getUrlParam('batchId');
 let currentBatch = null;
 
@@ -18,6 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   
   document.getElementById('bulkConfirmBtn').addEventListener('click', handleBulkConfirm);
+  document.getElementById('syncAllQbBtn').addEventListener('click', handleSyncAllQuickBooks);
+  document.getElementById('exportCsvBtn').addEventListener('click', handleExportCsv);
   
   await loadBatch();
 });
@@ -31,6 +45,11 @@ async function loadBatch() {
     currentBatch = data.batch;
     renderBatch(data.batch);
     showElement('batchGrid', true);
+    
+    // Load QB status for batch actions
+    if (currentBatch.business?._id) {
+      await loadQbStatus(currentBatch.business._id);
+    }
   } catch (err) {
     showError('error', err.message);
   } finally {
@@ -55,6 +74,11 @@ function renderBatch(batch) {
     f.status === 'extracted' && f.confidenceScore >= 0.85
   );
   document.getElementById('bulkConfirmBtn').style.display = hasHighConfidence ? 'inline-flex' : 'none';
+  
+  // Show sync/export buttons if there are confirmed sales
+  const confirmedCount = batch.files.filter(f => f.status === 'confirmed' && f.linkedSaleId).length;
+  document.getElementById('syncAllQbBtn').style.display = confirmedCount > 0 ? 'inline-flex' : 'none';
+  document.getElementById('exportCsvBtn').style.display = confirmedCount > 0 ? 'inline-flex' : 'none';
   
   renderFiles(batch.files);
 }
@@ -147,5 +171,92 @@ async function handleBulkConfirm() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Confirm All High Confidence';
+  }
+}
+
+async function loadQbStatus(businessId) {
+  try {
+    const data = await apiFetch(`/quickbooks/status/${businessId}`);
+    const statusEl = document.getElementById('qbStatus') || createQbStatusElement();
+    
+    if (data.connected) {
+      statusEl.innerHTML = getQbStatusBadge('connected');
+      statusEl.style.display = 'inline-flex';
+    } else {
+      statusEl.innerHTML = getQbStatusBadge(data.status);
+      statusEl.style.display = 'inline-flex';
+    }
+  } catch (err) {
+    console.warn('Failed to load QB status:', err);
+  }
+}
+
+function createQbStatusElement() {
+  const el = document.createElement('span');
+  el.id = 'qbStatus';
+  el.className = 'status-badge';
+  el.style.display = 'none';
+  document.querySelector('.batch-meta').appendChild(el);
+  return el;
+}
+
+async function handleSyncAllQuickBooks() {
+  const btn = document.getElementById('syncAllQbBtn');
+  btn.disabled = true;
+  btn.textContent = 'Syncing...';
+  
+  try {
+    const data = await apiFetch(`/quickbooks/sync-batch/${batchId}`, {
+      method: 'POST',
+    });
+    
+    let message = `Batch sync complete:\n- Synced: ${data.synced.length}\n- Errors: ${data.errors.length}`;
+    if (data.errors.length > 0) {
+      message += '\nErrors:\n' + data.errors.map(e => `  ${e.saleId}: ${e.error}`).join('\n');
+    }
+    alert(message);
+    
+    if (data.errors.length > 0) {
+      console.error('Batch sync errors:', data.errors);
+    }
+    
+    await loadBatch();
+  } catch (err) {
+    showError('error', err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sync All to QuickBooks';
+  }
+}
+
+async function handleExportCsv() {
+  const btn = document.getElementById('exportCsvBtn');
+  btn.disabled = true;
+  btn.textContent = 'Exporting...';
+  
+  try {
+    const response = await fetch(`/api/quickbooks/export/${batchId}`, {
+      credentials: 'include',
+    });
+    
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.message || 'Export failed');
+    }
+    
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quickbooks-expenses-${batchId}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    showError('error', err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Export CSV';
   }
 }

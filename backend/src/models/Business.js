@@ -37,6 +37,18 @@ const businessSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  qbExpenseAccountId: {
+    type: String,
+    trim: true,
+    maxlength: 100,
+    default: null,
+  },
+  qbTaxCodeId: {
+    type: String,
+    trim: true,
+    maxlength: 100,
+    default: null,
+  },
 }, {
   timestamps: true,
 });

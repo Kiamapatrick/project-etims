@@ -13,6 +13,8 @@ function mapExtractedToSaleData(extracted, upload) {
     saleDate: parseDate(extracted.date),
     totalAmount: extracted.total,
     vatAmount: extracted.vat?.amount || 0,
+    sellerName: extracted.sellerName || null,
+    sellerPin: extracted.sellerPin || null,
     lineItems: extracted.lineItems || [],
     source: 'upload',
     documentUploadId: upload._id,

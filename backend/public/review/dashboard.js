@@ -2,6 +2,18 @@
 
 import { apiFetch, formatDate, formatCurrency, getStatusBadge, populateBusinessFilter, buildQueryParams, parseMultiSelect, showError, hideError, showLoading, showElement } from './review.js';
 
+function getQbStatusBadge(status) {
+  const badges = {
+    connected: 'status-completed',
+    not_configured: 'status-pending',
+    expired: 'status-failed',
+    error: 'status-failed',
+    disconnected: 'status-rejected',
+  };
+  const label = status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  return `<span class="status-badge ${badges[status] || ''}">${label}</span>`;
+}
+
 const state = {
   page: 1,
   limit: 20,
@@ -84,6 +96,9 @@ async function loadBatches() {
     state.totalPages = data.pagination.totalPages;
     state.page = data.pagination.page;
     
+    // Fetch QB status for batches that have businessId
+    await enrichBatchesWithQbStatus(data.batches);
+    
     renderBatches(data.batches);
     updatePagination();
     showElement('tableContainer', true);
@@ -92,6 +107,29 @@ async function loadBatches() {
   } finally {
     showLoading('loading', false);
   }
+}
+
+async function enrichBatchesWithQbStatus(batches) {
+  // Group batches by businessId to minimize QB status calls
+  const businessIds = [...new Set(batches.map(b => b.business?._id).filter(Boolean))];
+  const qbStatusMap = new Map();
+  
+  for (const businessId of businessIds) {
+    try {
+      const status = await apiFetch(`/quickbooks/status/${businessId}`);
+      qbStatusMap.set(businessId, status);
+    } catch (err) {
+      qbStatusMap.set(businessId, { connected: false, status: 'error' });
+    }
+  }
+  
+  batches.forEach(batch => {
+    if (batch.business?._id) {
+      batch.qbStatus = qbStatusMap.get(batch.business._id) || { connected: false, status: 'not_configured' };
+    } else {
+      batch.qbStatus = { connected: false, status: 'not_configured' };
+    }
+  });
 }
 
 function renderBatches(batches) {
@@ -105,6 +143,8 @@ function renderBatches(batches) {
       window.location.href = `/review/batch.html?batchId=${batch.batchId}`;
     });
     
+    const qbStatusHtml = batch.qbStatus ? getQbStatusBadge(batch.qbStatus.status) : '';
+    
     tr.innerHTML = `
       <td><code>${batch.batchId.slice(0, 8)}...</code></td>
       <td>${batch.business?.name || 'Unknown'} <small>(${batch.business?.pin || ''})</small></td>
@@ -115,6 +155,7 @@ function renderBatches(batches) {
       <td>${batch.rejectedCount}</td>
       <td>${batch.failedCount}</td>
       <td>${getStatusBadge(batch.status)}</td>
+      <td>${qbStatusHtml}</td>
       <td>
         <a href="/review/batch.html?batchId=${batch.batchId}" class="btn btn-secondary btn-sm">Review</a>
       </td>
@@ -122,8 +163,8 @@ function renderBatches(batches) {
     tbody.appendChild(tr);
   });
   
-  if (batches.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 2rem; color: var(--text-muted);">No batches found</td></tr>';
+if (batches.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 2rem; color: var(--text-muted);">No batches found</td></tr>';
   }
 }
 
