@@ -7,11 +7,12 @@ import { validateExtraction, parseAmount, parseDate } from './validator.js';
 import { config } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
-function parseOcrText(text, cuin) {
+function parseOcrText(text, cuin, qrCode) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const result = {
     source: 'ocr',
     cuin,
+    qrCode,
     qrVerified: !!cuin,
     sellerPin: null,
     sellerName: null,
@@ -101,11 +102,13 @@ export async function processFile(documentUploadId, fileIndex) {
     const imageBuffer = await prepareImageForExtraction(buffer, file.mimeType);
 
     let cuin = null;
+    let qrCode = null;
     let qrVerified = false;
     let extractedData = null;
 
     const qrResult = await decodeQrFromBuffer(imageBuffer);
     if (qrResult) {
+      qrCode = qrResult.data;
       cuin = extractCUIFromQR(qrResult.data);
       if (cuin) {
         qrVerified = true;
@@ -116,7 +119,7 @@ export async function processFile(documentUploadId, fileIndex) {
     const ocrResult = await extractTextFromBuffer(imageBuffer);
     logger.info('OCR completed', { documentUploadId, fileIndex, confidence: ocrResult.confidence });
 
-    extractedData = parseOcrText(ocrResult.text, cuin);
+    extractedData = parseOcrText(ocrResult.text, cuin, qrCode);
     extractedData.source = qrVerified ? 'qr' : 'ocr';
     extractedData.confidence = ocrResult.confidence;
 

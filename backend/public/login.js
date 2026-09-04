@@ -32,6 +32,15 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     if (!meRes.ok) throw new Error(me.message || 'Profile fetch failed');
 
     msg.textContent = `Welcome, ${me.user.email} (${me.user.role})`;
+    
+    // Redirect accountants to review dashboard, others to home
+    setTimeout(() => {
+      if (me.user.role === 'accountant') {
+        window.location.href = '/review.html';
+      } else {
+        window.location.href = '/index.html';
+      }
+    }, 1000);
   } catch (err) {
     msg.textContent = err.message;
     msg.className = 'message error';

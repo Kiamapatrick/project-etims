@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Batch Review - eTIMS</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/review/review.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>eTIMS</h1>
+      <nav>
+        <a href="/index.html">Home</a>
+        <a href="/review.html">Review Dashboard</a>
+        <a href="#" id="logoutBtn">Logout</a>
+      </nav>
+    </header>
+    <main>
+      <section class="card">
+        <header class="card-header">
+          <h2 id="batchTitle">Batch Review</h2>
+          <div class="batch-meta">
+            <span id="batchStatus" class="status-badge"></span>
+            <span id="batchBusiness"></span>
+            <span id="batchDate"></span>
+          </div>
+        </header>
+
+        <div class="batch-summary">
+          <div class="summary-stat">
+            <span class="summary-value" id="statTotal">0</span>
+            <span class="summary-label">Total</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-value" id="statExtracted">0</span>
+            <span class="summary-label">Extracted</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-value" id="statReview">0</span>
+            <span class="summary-label">Needs Review</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-value" id="statRejected">0</span>
+            <span class="summary-label">Rejected</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-value" id="statFailed">0</span>
+            <span class="summary-label">Failed</span>
+          </div>
+        </div>
+
+        <div class="batch-actions" style="margin: 1rem 0;">
+          <button id="bulkConfirmBtn" class="btn btn-primary" style="display: none;">Confirm All High Confidence</button>
+          <a href="/review.html" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">Loading batch...</div>
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="batchGrid" class="batch-grid" style="display: none;"></div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="/review/review.js"></script>
+  <script type="module" src="/review/batch.js"></script>
+</body>
+</html>

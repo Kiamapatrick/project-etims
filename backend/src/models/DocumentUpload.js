@@ -73,8 +73,17 @@ const documentUploadSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['pending', 'processing', 'completed', 'partial', 'needs_review', 'failed'],
+    enum: ['pending', 'processing', 'extracted', 'needs_review', 'confirmed', 'rejected', 'failed'],
     default: 'pending',
+  },
+  linkedSaleId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Sale',
+    default: null,
+  },
+  rejectReason: {
+    type: String,
+    default: null,
   },
   totalFiles: {
     type: Number,
