@@ -1,6 +1,8 @@
 import { connectDB } from './src/db/mongoose.js';
+import { startExtractionWorker } from './src/workers/extractionWorker.js';
+
 await connectDB();
-import './src/workers/extractionWorker.js';
+startExtractionWorker();
 
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, closing worker...');
