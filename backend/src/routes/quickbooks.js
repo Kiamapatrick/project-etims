@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { requireBusinessAccess } from '../middleware/accessControl.js';
 import { requireBatchAccess } from '../middleware/batchAccess.js';
+import { requireSaleAccess } from '../middleware/saleAccess.js';
 import {
   initiateConnect,
   handleCallback,
@@ -11,7 +12,6 @@ import {
 import { syncSaleToQuickBooks, bulkSyncSales } from '../services/quickbooksSync.js';
 import { generateQuickBooksExpenseCSV } from '../services/csvExport.js';
 import { DocumentUpload } from '../models/index.js';
-import { Sale } from '../models/index.js';
 import { AppError } from '../middleware/errorHandler.js';
 
 const router = Router();
@@ -56,7 +56,7 @@ router.post('/disconnect/:businessId', authenticate, requireBusinessAccess, asyn
   }
 });
 
-router.post('/sync/:saleId', authenticate, requireBusinessAccess, async (req, res, next) => {
+router.post('/sync/:saleId', authenticate, requireSaleAccess, async (req, res, next) => {
   try {
     const { saleId } = req.params;
     const result = await syncSaleToQuickBooks(saleId);

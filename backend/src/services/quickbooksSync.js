@@ -2,6 +2,7 @@ import { getValidAccessToken } from './quickbooksAuth.js';
 import { findOrCreateVendor } from './quickbooksVendor.js';
 import { Sale, QuickBooksConnection } from '../models/index.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { config } from '../config/env.js';
 import fetch from 'node-fetch';
 
 const QB_BASE = config.quickbooks.baseUrl;
