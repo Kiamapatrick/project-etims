@@ -1,4 +1,4 @@
-import { Sale } from '../models/index.js';
+import { Sale, Business } from '../models/index.js';
 import { getConfig as getReceiptConfig, seedDefaultConfig } from '../services/receiptConfig.js';
 import { AppError } from '../middleware/errorHandler.js';
 
@@ -8,19 +8,21 @@ export async function getConfig(req, res, next) {
     let config = await getReceiptConfig(businessId);
     
     if (!config) {
-      config = await seedDefaultConfig(businessId, req.user.business?.defaultVatRate || 16);
+      const business = await Business.findById(businessId).lean();
+      config = await seedDefaultConfig(businessId, business?.defaultVatRate ?? 16);
     }
     
     res.json({ status: 'success', config });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 }
 
 export async function createSale(req, res, next) {
   try {
     const businessId = req.user.businessId;
     const userId = req.user._id;
+    
+    const business = await Business.findById(businessId).lean();
+    
     const { 
       saleDate, 
       totalAmount, 
@@ -40,7 +42,7 @@ export async function createSale(req, res, next) {
       }
     }
 
-    const posReference = `POS-${req.user.business?.pin || businessId}-${Date.now()}`;
+    const posReference = `POS-${business?.pin || businessId}-${Date.now()}`;
 
     const sale = await Sale.create({
       businessId,
@@ -49,8 +51,8 @@ export async function createSale(req, res, next) {
       saleDate: new Date(saleDate),
       totalAmount,
       vatAmount,
-      sellerName: sellerName || req.user.business?.name || 'Unknown',
-      sellerPin: sellerPin || req.user.business?.pin || null,
+      sellerName: sellerName || business?.name || 'Unknown',
+      sellerPin: sellerPin || business?.pin || null,
       lineItems,
       source: 'pos',
       documentUploadId: null,
@@ -60,9 +62,7 @@ export async function createSale(req, res, next) {
     });
 
     res.status(201).json({ status: 'success', sale });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 }
 
 export async function listSales(req, res, next) {
