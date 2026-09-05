@@ -285,13 +285,8 @@ async function queueSale(saleData) {
   const tx = db.transaction('pendingSales', 'readwrite');
   const store = tx.objectStore('pendingSales');
   
-  await store.add({
-    saleData,
-    createdAt: new Date().toISOString(),
-    retries: 0,
-  });
-  
-  await tx.done;
+  store.add({ saleData, createdAt: new Date().toISOString(), retries: 0 });
+  await txDone(tx);
   updateQueuedCount();
 }
 
@@ -299,27 +294,43 @@ async function syncQueue() {
   if (!isOnline) return;
   
   const db = await openDB();
-  const tx = db.transaction('pendingSales', 'readwrite');
-  const store = tx.objectStore('pendingSales');
-  const all = await store.getAll();
   
-  for (const item of all) {
+  // 1. READ phase — one short transaction
+  let pendingItems = [];
+  {
+    const tx = db.transaction('pendingSales', 'readonly');
+    const store = tx.objectStore('pendingSales');
+    pendingItems = await promisifyRequest(store.getAll());
+    await txDone(tx);
+  }
+  
+  // 2. PROCESS phase — each item gets its own transaction
+  for (const item of pendingItems) {
     try {
       await apiFetch('/sales', {
         method: 'POST',
         body: JSON.stringify(item.saleData),
       });
-      await store.delete(item.id);
+      
+      // DELETE on success — fresh transaction
+      const delTx = db.transaction('pendingSales', 'readwrite');
+      const delStore = delTx.objectStore('pendingSales');
+      delStore.delete(item.id);
+      await txDone(delTx);
+      
     } catch (err) {
+      // RETRY with increment — fresh transaction
       if (item.retries < 3) {
-        await store.put({ ...item, retries: item.retries + 1 });
+        const putTx = db.transaction('pendingSales', 'readwrite');
+        const putStore = putTx.objectStore('pendingSales');
+        putStore.put({ ...item, retries: item.retries + 1 });
+        await txDone(putTx);
       } else {
         console.error('Max retries exceeded for sale:', item);
       }
     }
   }
   
-  await tx.done;
   updateQueuedCount();
 }
 
@@ -345,14 +356,29 @@ async function updateQueuedCount() {
     const db = await openDB();
     const tx = db.transaction('pendingSales', 'readonly');
     const store = tx.objectStore('pendingSales');
-    const count = await store.count();
-    await tx.done;
+    const count = await promisifyRequest(store.count());
+    await txDone(tx);
     
     const badge = document.getElementById('queuedCount');
     if (badge) badge.textContent = `${count} queued`;
   } catch (err) {
     console.warn('Failed to update queued count:', err);
   }
+}
+
+function promisifyRequest(request) {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function txDone(tx) {
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
 }
 
 async function loadHistory() {
