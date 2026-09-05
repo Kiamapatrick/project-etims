@@ -7,3 +7,4 @@ export { AuditLog } from './AuditLog.js';
 export { DocumentUpload } from './DocumentUpload.js';
 export { ReceiptConfig } from './ReceiptConfig.js';
 export { QuickBooksConnection } from './QuickBooksConnection.js';
+export { OAuthState } from './OAuthState.js';

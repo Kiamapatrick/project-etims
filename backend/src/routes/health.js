@@ -3,7 +3,7 @@ import { getConnectionStatus } from '../db/mongoose.js';
 
 const router = Router();
 
-router.get('/health', (req, res) => {
+router.get('/', (req, res) => {
   const dbStatus = getConnectionStatus();
   const isHealthy = dbStatus.readyState === 1;
 

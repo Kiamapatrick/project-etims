@@ -11,7 +11,7 @@ const router = Router();
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
-  message: { status: 'fail', message: 'Too many login attempts, please try again later' },
+  message: 'Too many login attempts, please try again later',
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -19,7 +19,7 @@ const loginLimiter = rateLimit({
 const refreshLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { status: 'fail', message: 'Too many refresh attempts, please try again later' },
+  message: 'Too many refresh attempts, please try again later',
   standardHeaders: true,
   legacyHeaders: false,
 });
