@@ -18,6 +18,7 @@ import csvImportRoutes from './routes/csvImport.js';
 import reviewRoutes from './routes/reviews.js';
 import quickbooksRoutes from './routes/quickbooks.js';
 import posRoutes from './routes/pos.js';
+import manualEntryRoutes from './routes/manualEntry.js';
 import { logger } from './utils/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -50,6 +51,7 @@ app.use('/api/csv-import', csvImportRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/quickbooks', quickbooksRoutes);
 app.use('/api/pos', posRoutes);
+app.use('/api/sales/manual', manualEntryRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

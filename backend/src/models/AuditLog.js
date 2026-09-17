@@ -4,11 +4,11 @@ const auditLogSchema = new mongoose.Schema({
   documentUploadId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'DocumentUpload',
-    required: true,
+    required: false,
   },
   fileIndex: {
     type: Number,
-    required: true,
+    required: false,
     min: 0,
   },
   saleId: {
@@ -24,7 +24,7 @@ const auditLogSchema = new mongoose.Schema({
   action: {
     type: String,
     required: true,
-    enum: ['edited', 'confirmed', 'rejected'],
+    enum: ['edited', 'confirmed', 'rejected', 'created'],
   },
   changes: {
     type: mongoose.Schema.Types.Mixed,

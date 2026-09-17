@@ -113,7 +113,7 @@ const saleSchema = new mongoose.Schema({
   source: {
     type: String,
     required: true,
-    enum: ['upload', 'pos', 'csv'],
+    enum: ['upload', 'pos', 'csv', 'manual'],
   },
   documentUploadId: {
     type: mongoose.Schema.Types.ObjectId,

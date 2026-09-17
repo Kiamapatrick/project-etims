@@ -37,6 +37,16 @@ export async function logReject({ documentUploadId, fileIndex, userId, reason })
   });
 }
 
+export async function logSaleCreated({ saleId, userId, source, saleData }) {
+  return AuditLog.create({
+    saleId,
+    userId,
+    action: 'created',
+    changes: { source: { after: source }, ...saleData },
+    timestamp: new Date(),
+  });
+}
+
 export async function getAuditLog(documentUploadId, fileIndex) {
   return AuditLog.find({ documentUploadId, fileIndex })
     .populate('userId', 'email role')

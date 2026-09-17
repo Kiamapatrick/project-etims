@@ -1,6 +1,7 @@
 import { Sale, Business } from '../models/index.js';
 import { getConfig as getReceiptConfig, seedDefaultConfig } from '../services/receiptConfig.js';
 import { AppError } from '../middleware/errorHandler.js';
+import { logSaleCreated } from '../services/auditLog.js';
 
 export async function getConfig(req, res, next) {
   try {
@@ -61,6 +62,9 @@ export async function createSale(req, res, next) {
       confirmedAt: new Date(),
       posReference,
     });
+
+    // Audit log for POS sale creation
+    await logSaleCreated({ saleId: sale._id, userId, source: 'pos', saleData: { totalAmount, vatAmount, lineItemsCount: lineItems.length } });
 
     res.status(201).json({ status: 'success', sale });
   } catch (err) { next(err); }
