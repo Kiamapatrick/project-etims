@@ -17,6 +17,11 @@ const lineItemSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
+  amount: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
   vatRate: {
     type: Number,
     required: true,

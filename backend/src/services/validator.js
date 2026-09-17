@@ -148,7 +148,7 @@ export function validateExtraction(data) {
     allErrors.push(...lineValidation.errors);
     
     if (data.vat !== undefined && data.total !== undefined) {
-      const totalsValidation = validateTotals(lineValidation.subtotal, data.vat, data.total);
+      const totalsValidation = validateTotals(lineValidation.subtotal, data.vat?.amount ?? data.vat, data.total);
       allErrors.push(...totalsValidation.errors);
     }
   } else if (data.subtotal !== undefined && data.vat !== undefined && data.total !== undefined) {

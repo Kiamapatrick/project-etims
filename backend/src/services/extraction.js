@@ -133,6 +133,7 @@ export async function processFile(documentUploadId, fileIndex) {
         description: 'Receipt total',
         quantity: 1,
         unitPrice,
+        amount: unitPrice,
         vatRate,
         vatAmount,
         totalAmount: extractedData.total,

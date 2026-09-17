@@ -102,10 +102,12 @@ function recordToExtractedData(record) {
 
     const lineItems = [];
     if (unitPrice !== null && total !== null) {
+        const amount = quantity * unitPrice;
         lineItems.push({
             description: record.description || 'Imported line item',
             quantity,
             unitPrice,
+            amount,
             vatRate,
             vatAmount: vatAmount ?? 0,
             totalAmount: total,
