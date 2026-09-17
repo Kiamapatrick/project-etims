@@ -54,6 +54,19 @@ export async function downloadFromS3(key) {
   return Buffer.concat(chunks);
 }
 
+export async function uploadBufferToS3(key, buffer, contentType) {
+  const client = getS3Client();
+  const command = new PutObjectCommand({
+    Bucket: config.s3.bucket,
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+  });
+  await client.send(command);
+  logger.info('Uploaded buffer to S3', { key, size: buffer.length });
+  return key;
+}
+
 export async function deleteFromS3(key) {
   const client = getS3Client();
   const command = new DeleteObjectCommand({

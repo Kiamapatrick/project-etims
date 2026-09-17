@@ -5,7 +5,7 @@ import { AppError } from '../middleware/errorHandler.js';
 import { parseDate } from './validator.js';
 import { logConfirm, logReject, logEdit } from './auditLog.js';
 
-function mapExtractedToSaleData(extracted, upload) {
+function mapExtractedToSaleData(extracted, upload, file) {
   return {
     businessId: upload.businessId,
     cuin: extracted.cuin,
@@ -16,7 +16,7 @@ function mapExtractedToSaleData(extracted, upload) {
     sellerName: extracted.sellerName || null,
     sellerPin: extracted.sellerPin || null,
     lineItems: extracted.lineItems || [],
-    source: 'upload',
+    source: file?.sourceType === 'csv' ? 'csv' : 'upload',
     documentUploadId: upload._id,
     confirmedBy: null,
     confirmedAt: null,
@@ -69,7 +69,7 @@ export async function confirmFile(documentUploadId, fileIndex, userId) {
         throw new AppError(`File status '${file.status}' cannot be confirmed`, 400);
       }
 
-      const saleData = mapExtractedToSaleData(file.extractedData, upload);
+      const saleData = mapExtractedToSaleData(file.extractedData, upload, file);
       saleData.confirmedBy = userId;
       saleData.confirmedAt = new Date();
       const [sale] = await Sale.create([saleData], { session });

@@ -48,6 +48,15 @@ const uploadFileSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  sourceType: {
+    type: String,
+    enum: ['upload', 'csv'],
+    default: 'upload',
+  },
+  rowNumber: {
+    type: Number,
+    default: null,
+  },
 }, { _id: false });
 
 const documentUploadSchema = new mongoose.Schema({

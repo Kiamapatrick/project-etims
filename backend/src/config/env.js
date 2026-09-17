@@ -65,6 +65,17 @@ export const config = {
     maxFilesPerBatch: parseInt(process.env.MAX_FILES_PER_BATCH, 10) || 50,
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
   },
+  csvImport: {
+    maxFileSize: parseInt(process.env.CSV_MAX_FILE_SIZE, 10) || 5 * 1024 * 1024,
+    maxRowsPerImport: parseInt(process.env.CSV_MAX_ROWS_PER_IMPORT, 10) || 2000,
+    allowedMimeTypes: [
+      'text/csv',
+      'application/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ],
+    baseConfidence: parseFloat(process.env.CSV_BASE_CONFIDENCE) || 0.9,
+  },
   extraction: {
     imageMaxDimension: parseInt(process.env.IMAGE_MAX_DIMENSION, 10) || 2000,
     ocrLanguage: process.env.OCR_LANGUAGE || 'eng',
