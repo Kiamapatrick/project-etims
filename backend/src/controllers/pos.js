@@ -40,6 +40,7 @@ export async function createSale(req, res, next) {
       if (!item.description || !item.quantity || !item.unitPrice || !item.vatRate || !item.vatAmount || !item.totalAmount) {
         throw new AppError('Each line item must have description, quantity, unitPrice, vatRate, vatAmount, and totalAmount', 400);
       }
+      item.amount = item.quantity * item.unitPrice;
     }
 
     const posReference = `POS-${business?.pin || businessId}-${Date.now()}`;
