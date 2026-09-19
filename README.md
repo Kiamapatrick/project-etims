@@ -1,5 +1,6 @@
 # eTIMS — Electronic Tax Invoice Management System
 
+
 A two-sided platform for Kenyan tax compliance: accountant/auditor portal (document upload, OCR/QR extraction, review dashboard, QuickBooks sync) + business POS app for direct invoice entry.
 
 ## Stack
