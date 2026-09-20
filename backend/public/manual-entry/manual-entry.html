@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manual Entry - eTIMS</title>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/pos/pos.css" />
+  <link rel="stylesheet" href="/manual-entry/manual-entry.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>eTIMS</h1>
+      <nav>
+        <a href="/index.html">Home</a>
+        <a href="/review.html">Review</a>
+        <a href="/manual-entry.html" class="active">Manual Entry</a>
+        <a href="#" id="logoutBtn">Logout</a>
+      </nav>
+    </header>
+    <main>
+      <section class="card">
+        <header class="card-header">
+          <h2>Manual Sale Entry</h2>
+        </header>
+
+        <form id="manualEntryForm" class="pos-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="businessId">Business *</label>
+              <select id="businessId" name="businessId" required>
+                <option value="">Select business…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="saleDate">Sale Date *</label>
+              <input type="date" id="saleDate" name="saleDate" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="sellerName">Seller Name (optional)</label>
+              <input type="text" id="sellerName" name="sellerName" placeholder="Defaults to business name" />
+            </div>
+            <div class="form-group">
+              <label for="sellerPin">Seller PIN (optional)</label>
+              <input type="text" id="sellerPin" name="sellerPin" placeholder="Defaults to business PIN" />
+            </div>
+          </div>
+
+          <h3>Line Items</h3>
+          <table class="line-items-table" id="lineItemsTable">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>VAT %</th>
+                <th>VAT Amt</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="lineItemsBody"></tbody>
+          </table>
+          <button type="button" id="addLineItem" class="btn btn-secondary btn-sm">+ Add Line Item</button>
+
+          <div class="totals-panel">
+            <div class="totals-row">
+              <span>Subtotal</span>
+              <span id="totalSubtotal">KES 0.00</span>
+            </div>
+            <div class="totals-row">
+              <span>VAT Total</span>
+              <span id="totalVat">KES 0.00</span>
+            </div>
+            <div class="totals-row total">
+              <span>Grand Total</span>
+              <span id="totalGrand">KES 0.00</span>
+            </div>
+          </div>
+
+          <div id="message" class="message" style="display: none;"></div>
+
+          <div class="action-buttons">
+            <button type="submit" id="submitBtn" class="btn btn-primary">Submit Sale</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="/manual-entry/manual-entry.js"></script>
+</body>
+</html>
