@@ -30,7 +30,7 @@ function setupEventListeners() {
 
 async function populateBusinessDropdown() {
   try {
-    const res = await fetch('/api/businesses');
+    const res = await apiFetch('/api/businesses');
     const data = await res.json();
     const select = document.getElementById('businessId');
     if (data.businesses) {

@@ -1,5 +1,7 @@
 // Shared utilities for review pages
 
+import { apiFetch as authApiFetch } from '../../auth.js';
+
 const API_BASE = '/api/reviews';
 
 export async function apiFetch(path, options = {}) {
@@ -86,10 +88,7 @@ export function showElement(containerId, show = true) {
 
 export async function populateBusinessFilter(selectId) {
   try {
-    const data = await apiFetch('/batches?limit=1&businessId=');
-    // We'll need a separate endpoint for businesses, for now just use the batches response
-    // Actually, we should call the businesses endpoint
-    const bizRes = await fetch('/api/businesses', { credentials: 'include' });
+    const bizRes = await authApiFetch('/api/businesses');
     const bizData = await bizRes.json();
     const select = document.getElementById(selectId);
     if (bizData.businesses) {

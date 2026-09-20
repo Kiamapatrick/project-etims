@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { Business } from '../models/index.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireAdmin } from '../middleware/rbac.js';
+import { scopeToAccessibleBusinesses } from '../middleware/scopeToAccessibleBusinesses.js';
 import { AppError } from '../middleware/errorHandler.js';
 
 const router = Router();
@@ -15,9 +16,9 @@ const adminLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-router.use(authenticate, requireAdmin, adminLimiter);
+router.use(authenticate, adminLimiter);
 
-router.post('/', async (req, res, next) => {
+router.post('/', requireAdmin, async (req, res, next) => {
   try {
     const { name, pin, address, contactEmail, contactPhone } = req.body;
 
@@ -39,16 +40,20 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', scopeToAccessibleBusinesses, async (req, res, next) => {
   try {
-    const businesses = await Business.find({ isActive: true }).sort({ createdAt: -1 });
+    const filter = { isActive: true };
+    if (req.accessibleBusinessIds !== null) {
+      filter._id = { $in: req.accessibleBusinessIds };
+    }
+    const businesses = await Business.find(filter).sort({ createdAt: -1 });
     res.json({ status: 'success', businesses });
   } catch (err) {
     next(err);
   }
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', requireAdmin, async (req, res, next) => {
   try {
     const business = await Business.findById(req.params.id);
     if (!business) {
@@ -60,7 +65,7 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', requireAdmin, async (req, res, next) => {
   try {
     const { name, address, contactEmail, contactPhone, isActive } = req.body;
     const business = await Business.findByIdAndUpdate(
@@ -77,7 +82,7 @@ router.patch('/:id', async (req, res, next) => {
   }
 });
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
     const business = await Business.findByIdAndUpdate(
       req.params.id,
